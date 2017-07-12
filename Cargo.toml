@@ -4,3 +4,7 @@ version = "0.1.0"
 authors = ["Erik Price <github@erikprice.net>"]
 
 [dependencies]
+futures = "0.1"
+tokio-io = "0.1"
+tokio-core = "0.1"
+tokio-proto = "0.1"
