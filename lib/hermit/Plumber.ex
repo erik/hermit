@@ -3,10 +3,8 @@
 defmodule Hermit.Plumber do
 
   def start_link do
-    {:ok, pid} = Agent.start_link(fn -> initial_state() end, name: __MODULE__)
-    reap()
-
-    {:ok, pid}
+    # TODO: schedule reap() call.
+    Agent.start_link(fn -> initial_state() end, name: __MODULE__)
   end
 
   def next_pipe_id do
@@ -16,25 +14,36 @@ defmodule Hermit.Plumber do
     end)
   end
 
-  def add_pipe_listener(pid) do
+  def add_pipe_listener(pipe_id, pid) do
     Agent.update(__MODULE__, fn state ->
-      # TODO: write me
+      Map.update(state, :pipe_listeners, %{}, fn dict ->
+        Map.update(dict, pipe_id, MapSet.new(), &(MapSet.put(&1, pid)))
+      end)
     end)
   end
 
+  def broadcast_pipe(content, pipe_id) do
+    Agent.get(__MODULE__,
+      &(Map.get(&1, :pipe_listeners, %{})
+      |> Map.get(pipe_id, MapSet.new)))
+    |> Enum.each(&Kernel.send(&1, { :pipe_activity, content }))
+  end
+
   # Clean up the zombies.
+  # TODO: This should be called in a loop every X seconds
   defp reap do
     Agent.update(__MODULE__, fn state ->
-      state[:stream_listeners]
-      |> Enum.map(fn {id, pids} ->
-        {id, Enum.filter(pids, &Process.alive?/1)}
+      Map.update(state, :pipe_listeners, %{}, fn dict ->
+        dict
+        |> Enum.map(fn {id, pids} -> {id, Enum.filter(pids, &Process.alive?/1)} end)
+        |> Enum.into(%{})
       end)
     end)
   end
 
   defp initial_state do
     %{
-      :stream_listeners => %{},
+      :pipe_listeners => %{},
       :last_id => 0
     }
   end
