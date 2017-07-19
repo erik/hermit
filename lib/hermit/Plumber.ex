@@ -1,9 +1,10 @@
 # It handles all the pipes.
 
 defmodule Hermit.Plumber do
+  require Logger
 
   def start_link do
-    # TODO: schedule reap() call.
+    Task.async(&Hermit.Plumber.reap_loop/0)
     Agent.start_link(fn -> initial_state() end, name: __MODULE__)
   end
 
@@ -29,9 +30,10 @@ defmodule Hermit.Plumber do
     |> Enum.each(&Kernel.send(&1, { :pipe_activity, content }))
   end
 
-  # Clean up the zombies.
-  # TODO: This should be called in a loop every X seconds
-  defp reap do
+  # Clean up the dead procs every 60 seconds
+  def reap_loop do
+    Process.sleep(60_000)
+    Logger.info "reap."
     Agent.update(__MODULE__, fn state ->
       Map.update(state, :pipe_listeners, %{}, fn dict ->
         dict
@@ -39,6 +41,8 @@ defmodule Hermit.Plumber do
         |> Enum.into(%{})
       end)
     end)
+
+    reap_loop()
   end
 
   defp initial_state do
