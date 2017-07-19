@@ -3,7 +3,7 @@ defmodule Hermit.Sink do
 
   def listen(port) do
     {:ok, socket} = :gen_tcp.listen(port,
-      [:binary, packet: :raw, active: false, reuseaddr: true])
+      [:binary, active: false, reuseaddr: true])
     Logger.info "Accepting connections on port #{port}"
 
     listen_loop(socket)
@@ -13,8 +13,8 @@ defmodule Hermit.Sink do
     {:ok, client} = :gen_tcp.accept(socket)
 
     {:ok, pid} = Task.Supervisor.start_child(Hermit.TaskSupervisor, fn ->
-      pipe_id = Hermit.Plumber.next_pipe_id()
-      :gen_tcp.send(client, "Your pipe is available at #{pipe_id}\n")
+      pipe_id = Hermit.Plumber.new_pipe()
+      :gen_tcp.send(client, "Your pipe is available at /v/#{pipe_id}\n")
       serve(client, pipe_id)
     end)
 
@@ -24,13 +24,14 @@ defmodule Hermit.Sink do
   end
 
   defp serve(socket, pipe_id) do
-    {status, chunk} = :gen_tcp.recv(socket, 0)
+    case :gen_tcp.recv(socket, 0) do
+      {:ok, chunk} ->
+        Hermit.Plumber.pipe_input(pipe_id, chunk)
+        serve(socket, pipe_id)
 
-    if status == :ok do
-      Hermit.Plumber.broadcast_pipe(chunk, pipe_id)
-      serve(socket, pipe_id)
-    else
-      Logger.info("Client finished")
+      {:error, :closed} ->
+        Logger.info("Client finished")
+        Hermit.Plumber.close_pipe(pipe_id)
     end
   end
 end
