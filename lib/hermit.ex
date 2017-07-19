@@ -4,10 +4,9 @@ defmodule Hermit do
   def start(_type, _args) do
     import Supervisor.Spec
 
-    IO.puts " HI THIS IS HAPPENING "
-
     children = [
       supervisor(Task.Supervisor, [[name: Hermit.TaskSupervisor]]),
+      Plug.Adapters.Cowboy.child_spec(:http, Hermit.Web, [], [port: 8090]),
       worker(Hermit.Plumber, []),
       worker(Task, [Hermit.Sink, :listen, [1337]])
     ]

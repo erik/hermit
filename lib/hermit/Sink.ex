@@ -33,9 +33,4 @@ defmodule Hermit.Sink do
       Logger.info("Client finished")
     end
   end
-
-  defp read_chunk(socket) do
-    {:ok, data} = :gen_tcp.recv(socket, 0)
-    data
-  end
 end
