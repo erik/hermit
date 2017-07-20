@@ -6,7 +6,7 @@ defmodule Hermit.Plumber do
   defstruct pipes: %{}, last_id: 0
 
   defmodule Pipe do
-    defstruct id: 0, active: true, listeners: MapSet.new()
+    defstruct id: 0, active: true, listeners: []
   end
 
   def start_link do
@@ -30,15 +30,10 @@ defmodule Hermit.Plumber do
 
   def add_pipe_listener(pipe_id, pid) do
     Agent.update(__MODULE__, fn state ->
-      x = %{ state |
-         pipes: Map.update(state.pipes, pipe_id, %Pipe{listeners: MapSet.new([pid])},
-           fn pipe ->
-             %{pipe | listeners: MapSet.put(pipe.listeners, pid)}
-           end)
-           }
-
-      IO.puts "new state #{inspect x}"
-      x
+      %{ state |
+         pipes: Map.update(state.pipes, pipe_id, %Pipe{listeners: [pid]},
+           fn pipe -> %{pipe | listeners: [ pid | pipe.listeners ]} end)
+       }
     end)
   end
 

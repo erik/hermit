@@ -5,6 +5,11 @@ defmodule Hermit.Web do
   plug :match
   plug :dispatch
 
+  get "/" do
+    conn
+    |> send_file(200, "./web/index.html")
+  end
+
   get "/v/:pipe_id" do
     send_resp(conn, 200, "world")
   end
@@ -23,7 +28,6 @@ defmodule Hermit.Web do
     receive do
       {:pipe_activity, msg} ->
         encoded = Base.encode64(msg)
-        IO.puts "chunky"
         {:ok, conn} = chunk(conn, "data: #{encoded}\n\n")
 
         listen_loop(conn)
