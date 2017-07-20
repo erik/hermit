@@ -1,19 +1,31 @@
 <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/2.8.1/xterm.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/2.8.1/addons/fullscreen/fullscreen.min.css" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/2.8.1/xterm.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/2.8.1/addons/fullscreen/fullscreen.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/2.8.1/addons/fit/fit.min.js"></script>
+
+    <style>
+     * { margin: 0; padding: 0; }
+     body { background: black; }
+     #terminal { height: 100%; width: 100%; }
+    </style>
 </head>
 
 <body>
   <div id="terminal"></div>
   <script>
-   let term = new Terminal();
-   term.open(document.getElementById('#terminal'));
-   term.toggleFullscreen(true);
+   let term = new Terminal({
+       convertEol: true,
+       scrollback: 10000,
+       disableStdin: true,
+   });
 
-   let sse = new EventSource("//localhost:8090/sse/1", { withCredentials: true } );
+   term.open(document.getElementById('terminal'));
+   term.fit();
+
+   window.addEventListener('resize', () => { term.fit() });
+
+   let sse = new EventSource("//localhost:8090/sse/1");
    sse.onmessage = function(e) {
        let decoded = window.atob(e.data);
        term.write(decoded);

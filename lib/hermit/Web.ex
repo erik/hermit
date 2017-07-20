@@ -6,8 +6,7 @@ defmodule Hermit.Web do
   plug :dispatch
 
   get "/" do
-    conn
-    |> send_file(200, "./web/index.html")
+    send_file(conn, 200, "./web/index.html")
   end
 
   get "/v/:pipe_id" do
