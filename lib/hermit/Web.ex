@@ -28,14 +28,14 @@ defmodule Hermit.Web do
 
   get "/v/:pipe_id" do
     base_url = Application.get_env(:hermit, :base_url)
-    sse_url = "#{base_url}/sse/#{pipe_id}"
+    sse_url = "#{base_url}/stream/#{pipe_id}"
 
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, pipe_template(sse_url))
   end
 
-  get "/sse/:pipe_id" do
+  get "/stream/:pipe_id" do
     # Register our process as a pipe listener
     Hermit.Plumber.add_pipe_listener(pipe_id, self())
 
