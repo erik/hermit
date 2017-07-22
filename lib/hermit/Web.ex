@@ -2,17 +2,20 @@ defmodule Hermit.Web do
   use Plug.Router
   require EEx
 
+  @base_url  Application.get_env(:hermit, :base_url)
+  @host      Application.get_env(:hermit, :host)
+  @sink_port Application.get_env(:hermit, :sink_port)
 
   plug :match
   plug :dispatch
 
-  EEx.function_from_file(:defp, :index_template, "./web/index.html")
+  EEx.function_from_file(:defp, :index_template, "./web/index.html", [:host, :port, :base_url])
   EEx.function_from_file(:defp, :pipe_template, "./web/pipe_view.html", [:sse_url])
 
   get "/" do
     conn
     |> put_resp_header("content-type", "text/html")
-    |> send_resp(200, index_template())
+    |> send_resp(200, index_template(@host, @sink_port, @base_url))
   end
 
   # Plain text
@@ -27,8 +30,7 @@ defmodule Hermit.Web do
   end
 
   get "/v/:pipe_id" do
-    base_url = Application.get_env(:hermit, :base_url)
-    sse_url = "#{base_url}/stream/#{pipe_id}"
+    sse_url = "#{@base_url}/stream/#{pipe_id}"
 
     conn
     |> put_resp_header("content-type", "text/html")

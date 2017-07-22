@@ -7,6 +7,8 @@ defmodule Hermit.Plumber do
     defstruct id: '', fp: nil, active: false, listeners: []
   end
 
+  @log_dir Application.get_env(:hermit, :log_dir)
+
   def start_link do
     Task.async(&Hermit.Plumber.reap_loop/0)
     Agent.start_link(fn -> %{} end, name: __MODULE__)
@@ -19,7 +21,6 @@ defmodule Hermit.Plumber do
       pipe_id = :crypto.strong_rand_bytes(6)
       |> Base.url_encode64
 
-      # TODO: make log directory configurable
       {:ok, file} =
         pipe_id
         |> get_pipe_file()
@@ -81,7 +82,7 @@ defmodule Hermit.Plumber do
   end
 
   def get_pipe_file(pipe_id) do
-    Application.get_env(:hermit, :log_dir)
+    @log_dir
     |> Path.join(pipe_id)
   end
 
