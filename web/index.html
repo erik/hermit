@@ -1,11 +1,18 @@
 <head>
     <style>
-     body { height: 100%; max-width: 900px; margin: 2em auto; line-height: 1.5; font-size: 24px; }
+     body { max-width: 900px; margin: 2em auto; line-height: 1.5; font-size: 24px; }
      p { font-family: Helvetica Neue, sans-serif; }
     </style>
 </head>
 
 <body>
     <p>pipe your command line to the web.</p>
-    <pre>$ some --long running --job | nc <%= Application.get_env(:hermit, :host) %> <%= Application.get_env(:hermit, :sink_port) %></pre>
+    <pre>
+$ some --long running --job | nc <%= Application.get_env(:hermit, :host) %> <%= Application.get_env(:hermit, :sink_port) %>
+
+<%= Application.get_env(:hermit, :base_url) %>/v/pipe_id      terminal js view
+<%= Application.get_env(:hermit, :base_url) %>/p/pipe_id      plain text view
+    </pre>
+
+    <p><a href="https://github.com/erik/hermit">fork me</a></p>
 </body>
