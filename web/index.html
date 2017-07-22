@@ -7,5 +7,5 @@
 
 <body>
     <p>pipe your command line to the web.</p>
-    <pre>$ some --long running --job | nc hermit.hostname.com 1337</pre>
+    <pre>$ some --long running --job | nc <%= Application.get_env(:hermit, :host) %> <%= Application.get_env(:hermit, :sink_port) %></pre>
 </body>

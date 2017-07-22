@@ -1,13 +1,18 @@
 defmodule Hermit.Web do
   use Plug.Router
+  require EEx
 
 
   plug :match
   plug :dispatch
 
-  # TODO: might as well template in the environment variables.
+  EEx.function_from_file(:defp, :index_template, "./web/index.html")
+  EEx.function_from_file(:defp, :pipe_template, "./web/pipe_view.html", [:sse_url])
+
   get "/" do
-    send_file(conn, 200, "./web/index.html")
+    conn
+    |> put_resp_header("content-type", "text/html")
+    |> send_resp(200, index_template())
   end
 
   # Plain text
@@ -22,7 +27,12 @@ defmodule Hermit.Web do
   end
 
   get "/v/:pipe_id" do
-    send_file(conn, 200, "./web/pipe_view.html")
+    base_url = Application.get_env(:hermit, :base_url)
+    sse_url = "#{base_url}/sse/#{pipe_id}"
+
+    conn
+    |> put_resp_header("content-type", "text/html")
+    |> send_resp(200, pipe_template(sse_url))
   end
 
   get "/sse/:pipe_id" do
