@@ -6,7 +6,7 @@ defmodule Hermit.Web do
   plug :dispatch
 
   get "/" do
-    send_resp(conn, 200, "TODO: some kind of listing thing.")
+    send_file(conn, 200, "./web/index.html")
   end
 
   # Plain text
