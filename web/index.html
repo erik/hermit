@@ -25,7 +25,10 @@
 
    window.addEventListener('resize', () => { term.fit() });
 
-   let sse = new EventSource("//localhost:8090/sse/1");
+   let split = window.location.pathname.split('/'),
+       pipe_id = split[split.length - 1];
+
+   let sse = new EventSource(`${window.location.origin}/sse/${pipe_id}`);
    sse.onmessage = function(e) {
        let decoded = window.atob(e.data);
        term.write(decoded);

@@ -14,7 +14,7 @@ defmodule Hermit.Sink do
 
     {:ok, pid} = Task.Supervisor.start_child(Hermit.TaskSupervisor, fn ->
       pipe_id = Hermit.Plumber.new_pipe()
-      :gen_tcp.send(client, "Your pipe is available at /v/#{pipe_id}\n")
+      :gen_tcp.send(client, "Your pipe is available at http://localhost:8090/v/#{pipe_id}\n")
       serve(client, pipe_id)
     end)
 
