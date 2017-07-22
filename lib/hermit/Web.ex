@@ -59,11 +59,11 @@ defmodule Hermit.Web do
     end)
   end
 
-  defp format_chunk(bytes, format) do
+  defp format_chunk(bytes, format, event \\ "input") do
     case format do
       :sse ->
         encoded = Base.encode64(bytes)
-        "data: #{encoded}\n\n"
+        "event: #{event}\ndata: #{encoded}\n\n"
       :plain ->
         bytes
     end
@@ -83,6 +83,7 @@ defmodule Hermit.Web do
 
       { :closed } ->
         conn
+        |> write_chunk("" |> format_chunk(format, "closed"))
     end
   end
 

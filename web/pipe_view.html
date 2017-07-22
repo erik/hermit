@@ -26,9 +26,12 @@
    window.addEventListener('resize', () => { term.fit() });
 
    let sse = new EventSource("<%= sse_url %>");
-   sse.onmessage = function(e) {
+
+   sse.addEventListener('input', (e) => {
        let decoded = window.atob(e.data);
        term.write(decoded);
-   }
+   });
+
+   sse.addEventListener('closed', (_) => { sse.close(); });
   </script>
 </body>
