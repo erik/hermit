@@ -9,6 +9,17 @@ defmodule Hermit.Web do
     send_resp(conn, 200, "TODO: some kind of listing thing.")
   end
 
+  # Plain text
+  get "/p/:pipe_id" do
+    Hermit.Plumber.add_pipe_listener(pipe_id, self())
+
+    conn
+    |> put_resp_header("content-type", "text/plain")
+    |> send_chunked(200)
+    |> send_replay(pipe_id, :plain)
+    |> listen_loop(:plain)
+  end
+
   get "/v/:pipe_id" do
     send_file(conn, 200, "./web/index.html")
   end
@@ -20,24 +31,29 @@ defmodule Hermit.Web do
     conn
     |> put_resp_header("content-type", "text/event-stream")
     |> send_chunked(200)
-    |> send_replay(pipe_id)
-    |> listen_loop()
+    |> send_replay(pipe_id, :sse)
+    |> listen_loop(:sse)
   end
 
-  defp send_replay(conn, pipe_id) do
+  defp send_replay(conn, pipe_id, format) do
     # FIXME: this feels like a really bad separation of concerns
     Agent.get(Hermit.Plumber, fn _state ->
       pipe_id
       |> Hermit.Plumber.get_pipe_file
       |> File.stream!([], 2048)
-      |> Enum.map(&format_chunk/1)
+      |> Enum.map(&(format_chunk(&1, format)))
       |> Enum.into(conn)
     end)
   end
 
-  defp format_chunk(bytes) do
-    encoded = Base.encode64(bytes)
-    "data: #{encoded}\n\n"
+  defp format_chunk(bytes, format) do
+    case format do
+      :sse ->
+        encoded = Base.encode64(bytes)
+        "data: #{encoded}\n\n"
+      :plain ->
+        bytes
+    end
   end
 
   defp write_chunk(conn, msg) do
@@ -45,12 +61,12 @@ defmodule Hermit.Web do
     conn
   end
 
-  defp listen_loop(conn) do
+  defp listen_loop(conn, format) do
     receive do
       {:pipe_activity, msg} ->
         conn
-        |> write_chunk(msg |> format_chunk())
-        |> listen_loop()
+        |> write_chunk(msg |> format_chunk(format))
+        |> listen_loop(format)
     end
   end
 
