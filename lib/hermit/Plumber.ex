@@ -32,6 +32,11 @@ defmodule Hermit.Plumber do
     pipe_id
   end
 
+  def valid_pipe?(pipe_id) do
+    Agent.get(__MODULE__, &(Map.get(&1, pipe_id))) ||
+      (get_pipe_file(pipe_id) |> File.exists?)
+  end
+
   def add_pipe_listener(pipe_id, pid) do
     Agent.update(__MODULE__, fn state ->
       Map.update(state, pipe_id, %Pipe{id: pipe_id}, fn pipe ->

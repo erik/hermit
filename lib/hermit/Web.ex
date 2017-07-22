@@ -20,13 +20,7 @@ defmodule Hermit.Web do
 
   # Plain text
   get "/p/:pipe_id" do
-    Hermit.Plumber.add_pipe_listener(pipe_id, self())
-
-    conn
-    |> put_resp_header("content-type", "text/plain")
-    |> send_chunked(200)
-    |> send_replay(pipe_id, :plain)
-    |> listen_loop(:plain)
+    conn |> stream_response(pipe_id, :plain)
   end
 
   get "/v/:pipe_id" do
@@ -38,14 +32,28 @@ defmodule Hermit.Web do
   end
 
   get "/stream/:pipe_id" do
-    # Register our process as a pipe listener
-    Hermit.Plumber.add_pipe_listener(pipe_id, self())
+    conn |> stream_response(pipe_id, :sse)
+  end
 
-    conn
-    |> put_resp_header("content-type", "text/event-stream")
-    |> send_chunked(200)
-    |> send_replay(pipe_id, :sse)
-    |> listen_loop(:sse)
+  defp stream_response(conn, pipe_id, format) do
+    content_type =
+      case format do
+        :sse -> "text/event-stream"
+        :plain -> "text/plain"
+      end
+
+    if Hermit.Plumber.valid_pipe? pipe_id do
+      # Register our process as a pipe listener
+      Hermit.Plumber.add_pipe_listener(pipe_id, self())
+
+      conn
+      |> put_resp_header("content-type", content_type)
+      |> send_chunked(200)
+      |> send_replay(pipe_id, format)
+      |> listen_loop(format)
+    else
+      send_resp(conn, 404, "fo oh fo")
+    end
   end
 
   defp send_replay(conn, pipe_id, format) do
