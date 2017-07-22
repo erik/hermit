@@ -2,9 +2,13 @@ defmodule Hermit.Sink do
   require Logger
 
   def listen(port) do
+    {:ok, addr} = Application.get_env(:hermit, :sink_bind)
+    |> String.to_charlist()
+    |> :inet_parse.address()
+
     {:ok, socket} = :gen_tcp.listen(port,
-      [:binary, active: false, reuseaddr: true])
-    Logger.info "Accepting connections on port #{port}"
+      [:binary, active: false, reuseaddr: true, ifaddr: addr])
+    Logger.info "Sink listening on #{:inet.ntoa addr}:#{port}"
 
     listen_loop(socket)
   end
