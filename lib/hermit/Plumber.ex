@@ -81,8 +81,8 @@ defmodule Hermit.Plumber do
   end
 
   def get_pipe_file(pipe_id) do
-    # TODO: need to make this configurable.
-    Path.join("/tmp/hermit/", pipe_id)
+    Application.get_env(:hermit, :log_dir)
+    |> Path.join(pipe_id)
   end
 
   # Clean up the dead procs every 60 seconds

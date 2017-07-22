@@ -5,6 +5,7 @@ defmodule Hermit.Web do
   plug :match
   plug :dispatch
 
+  # TODO: might as well template in the environment variables.
   get "/" do
     send_file(conn, 200, "./web/index.html")
   end
@@ -74,6 +75,6 @@ defmodule Hermit.Web do
   end
 
   match _ do
-    send_resp(conn, 404, "oops")
+    send_resp(conn, 404, "fo oh fo")
   end
 end

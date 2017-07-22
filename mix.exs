@@ -11,10 +11,7 @@ defmodule Hermit.Mixfile do
   end
 
   # Configuration for the OTP application
-  #
-  # Type "mix help compile.app" for more information
   def application do
-    # Specify extra applications you'll use from Erlang/Elixir
     [applications: [:cowboy, :plug],
      extra_applications: [:logger],
      mod: {Hermit, []}]

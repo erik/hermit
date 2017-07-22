@@ -10,11 +10,12 @@ defmodule Hermit.Sink do
   end
 
   defp listen_loop(socket) do
+    base_url = Application.get_env(:hermit, :base_url)
     {:ok, client} = :gen_tcp.accept(socket)
 
     {:ok, pid} = Task.Supervisor.start_child(Hermit.TaskSupervisor, fn ->
       pipe_id = Hermit.Plumber.new_pipe()
-      :gen_tcp.send(client, "Your pipe is available at http://localhost:8090/v/#{pipe_id}\n")
+      :gen_tcp.send(client, "Your pipe is available at #{base_url}/v/#{pipe_id}\n")
       serve(client, pipe_id)
     end)
 
