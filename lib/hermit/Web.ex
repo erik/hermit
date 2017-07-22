@@ -21,7 +21,7 @@ defmodule Hermit.Web do
   end
 
   get "/v/:pipe_id" do
-    send_file(conn, 200, "./web/index.html")
+    send_file(conn, 200, "./web/pipe_view.html")
   end
 
   get "/sse/:pipe_id" do
