@@ -63,10 +63,13 @@ defmodule Hermit.Web do
 
   defp listen_loop(conn, format) do
     receive do
-      {:pipe_activity, msg} ->
+      { :pipe_activity, msg } ->
         conn
         |> write_chunk(msg |> format_chunk(format))
         |> listen_loop(format)
+
+      { :closed } ->
+        conn
     end
   end
 

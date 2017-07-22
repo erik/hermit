@@ -35,7 +35,13 @@ defmodule Hermit.Plumber do
   def add_pipe_listener(pipe_id, pid) do
     Agent.update(__MODULE__, fn state ->
       Map.update(state, pipe_id, %Pipe{id: pipe_id}, fn pipe ->
-        %{pipe | listeners: [pid | pipe.listeners]}
+        # Only add listeners to pipes that are active.
+        if pipe.active do
+          %{pipe | listeners: [pid | pipe.listeners]}
+        else
+          send(pid, { :closed })
+          pipe
+        end
       end)
     end)
   end
