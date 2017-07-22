@@ -1,19 +1,6 @@
 # Hermit
 
-**TODO: Add description**
+An self hosted implementation of [seashells.io](http://seashells.io).
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `hermit` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [{:hermit, "~> 0.1.0"}]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/hermit](https://hexdocs.pm/hermit).
-
+Because the idea of seashells was super cool, but the fact that the
+server isn't open source is not.
