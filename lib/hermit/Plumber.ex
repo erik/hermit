@@ -16,21 +16,20 @@ defmodule Hermit.Plumber do
 
   # Create a new pipe and return the id
   def new_pipe do
-    Agent.get_and_update(__MODULE__, fn state ->
-      # Generate a random id to use as the file name
-      pipe_id = :crypto.strong_rand_bytes(6)
-      |> Base.url_encode64
+    # Generate a random id to use as the file name
+    pipe_id = :crypto.strong_rand_bytes(6)
+    |> Base.url_encode64
 
+    :ok = Agent.update(__MODULE__, fn state ->
       {:ok, file} =
         pipe_id
         |> get_pipe_file()
         |> File.open([:raw, :write])
 
-      next_state = Map.put(state, pipe_id,
-        %Pipe{id: pipe_id, fp: file, active: true})
-
-      { pipe_id, next_state }
+      Map.put(state, pipe_id, %Pipe{id: pipe_id, fp: file, active: true})
     end)
+
+    pipe_id
   end
 
   def add_pipe_listener(pipe_id, pid) do
@@ -40,7 +39,7 @@ defmodule Hermit.Plumber do
         if pipe.active do
           %{pipe | listeners: [pid | pipe.listeners]}
         else
-          send(pid, { :closed })
+          send pid, { :closed }
           pipe
         end
       end)
@@ -51,16 +50,14 @@ defmodule Hermit.Plumber do
   defp broadcast_pipe_listeners(pipe, msg) do
     pipe
     |> Map.get(:listeners)
-    |> Enum.each(fn pid ->
-      IO.puts "sending to #{inspect pid}"
-      send(pid, msg)
-    end)
+    |> Enum.each(&(send &1, msg))
   end
 
   # FIXME: need a limit on total bytes written.
   def pipe_input(pipe_id, content) do
     Agent.get(__MODULE__, fn state ->
       pipe = Map.get(state, pipe_id, %Pipe{})
+
       true = pipe.active
       :ok = IO.binwrite(pipe.fp, content)
 
