@@ -20,6 +20,8 @@ defmodule Hermit.Sink do
     {:ok, pid} = Task.Supervisor.start_child(Hermit.TaskSupervisor, fn ->
       pipe_id = Hermit.Plumber.new_pipe()
       :gen_tcp.send(client, "Your pipe is available at #{base_url}/v/#{pipe_id}\n")
+      Logger.info("Stream opened: #{pipe_id}")
+
       serve(client, pipe_id)
     end)
 
@@ -31,11 +33,17 @@ defmodule Hermit.Sink do
   defp serve(socket, pipe_id) do
     case :gen_tcp.recv(socket, 0) do
       {:ok, chunk} ->
-        Hermit.Plumber.pipe_input(pipe_id, chunk)
-        serve(socket, pipe_id)
+        case Hermit.Plumber.pipe_input(pipe_id, chunk) do
+          :ok ->
+            serve(socket, pipe_id)
+
+          :file_too_large ->
+            :gen_tcp.send(socket, "max pipe size reached")
+        end
+
 
       {:error, :closed} ->
-        Logger.info("Client finished")
+        Logger.info("pipe closed: #{pipe_id}")
         Hermit.Plumber.close_pipe(pipe_id)
     end
   end

@@ -4,10 +4,11 @@ defmodule Hermit.Plumber do
   require Logger
 
   defmodule Pipe do
-    defstruct id: '', fp: nil, active: false, listeners: []
+    defstruct id: '', fp: nil, active: false, listeners: [], bytes_written: 0
   end
 
   @log_dir Application.get_env(:hermit, :log_dir)
+  @max_file Application.get_env(:hermit, :max_file)
 
   def start_link do
     Task.async(&Hermit.Plumber.reap_loop/0)
@@ -58,17 +59,28 @@ defmodule Hermit.Plumber do
     |> Enum.each(&(send &1, msg))
   end
 
-  # FIXME: need a limit on total bytes written.
+  # FIXME: Maybe want to move the write outside of this function?
+  # FIXME: Seems wasteful to only allow one thing to write at a time.
   def pipe_input(pipe_id, content) do
-    Agent.get(__MODULE__, fn state ->
-      pipe = Map.get(state, pipe_id, %Pipe{})
+    Agent.get_and_update(__MODULE__, fn state ->
+      pipe = state |> Map.get(pipe_id)
+      size = pipe.bytes_written + byte_size(content)
 
-      true = pipe.active
-      :ok = IO.binwrite(pipe.fp, content)
+      cond do
+          # This should be impossible...
+        not pipe.active ->
+          { :closed, state }
 
-      pipe
+        size >= @max_file ->
+          { :file_too_large, state}
+
+        :else ->
+          :ok = IO.binwrite(pipe.fp, content)
+          broadcast_pipe_listeners(pipe, { :pipe_activity, content })
+          state_ = Map.put(state, pipe_id, %{ pipe | bytes_written: size })
+          { :ok, state_ }
+      end
     end)
-    |> broadcast_pipe_listeners({ :pipe_activity, content })
   end
 
   def close_pipe(pipe_id) do
@@ -84,8 +96,7 @@ defmodule Hermit.Plumber do
   end
 
   def get_pipe_file(pipe_id) do
-    @log_dir
-    |> Path.join(pipe_id)
+    @log_dir |> Path.join(pipe_id)
   end
 
   # Clean up the dead procs every 60 seconds

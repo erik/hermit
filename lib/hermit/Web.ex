@@ -42,7 +42,7 @@ defmodule Hermit.Web do
         :plain -> "text/plain"
       end
 
-    if Hermit.Plumber.valid_pipe? pipe_id do
+    if Hermit.Plumber.valid_pipe?(pipe_id) do
       # Register our process as a pipe listener
       Hermit.Plumber.add_pipe_listener(pipe_id, self())
 
