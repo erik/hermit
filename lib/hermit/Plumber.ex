@@ -7,8 +7,8 @@ defmodule Hermit.Plumber do
     defstruct id: '', fp: nil, active: false, listeners: [], bytes_written: 0
   end
 
-  @log_dir Application.get_env(:hermit, :log_dir)
-  @max_file Application.get_env(:hermit, :max_file)
+  @log_dir Hermit.Config.log_dir
+  @max_file Hermit.Config.max_file
 
   def start_link do
     Task.async(&Hermit.Plumber.reap_loop/0)

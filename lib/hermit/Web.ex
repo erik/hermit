@@ -2,9 +2,9 @@ defmodule Hermit.Web do
   use Plug.Router
   require EEx
 
-  @base_url  Application.get_env(:hermit, :base_url)
-  @host      Application.get_env(:hermit, :host)
-  @sink_port Application.get_env(:hermit, :sink_port)
+  @base_url  Hermit.Config.base_url
+  @host      Hermit.Config.host
+  @sink_port Hermit.Config.sink_port
 
   plug :match
   plug :dispatch

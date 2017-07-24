@@ -2,7 +2,7 @@ defmodule Hermit.Sink do
   require Logger
 
   def listen(port) do
-    {:ok, addr} = Application.get_env(:hermit, :sink_bind)
+    {:ok, addr} = Hermit.Config.sink_bind
     |> String.to_charlist()
     |> :inet_parse.address()
 
@@ -14,7 +14,7 @@ defmodule Hermit.Sink do
   end
 
   defp listen_loop(socket) do
-    base_url = Application.get_env(:hermit, :base_url)
+    base_url = Hermit.Config.base_url
     {:ok, client} = :gen_tcp.accept(socket)
 
     {:ok, pid} = Task.Supervisor.start_child(Hermit.TaskSupervisor, fn ->

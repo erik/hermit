@@ -4,8 +4,8 @@ defmodule Hermit do
   def start(_type, _args) do
     import Supervisor.Spec
 
-    web_port = Application.get_env(:hermit, :web_port)
-    sink_port = Application.get_env(:hermit, :sink_port)
+    web_port = Hermit.Config.web_port
+    sink_port = Hermit.Config.sink_port
 
     children = [
       supervisor(Task.Supervisor, [[name: Hermit.TaskSupervisor]]),
