@@ -57,14 +57,11 @@ defmodule Hermit.Web do
   end
 
   defp send_replay(conn, pipe_id, format) do
-    # FIXME: this feels like a really bad separation of concerns
-    Agent.get(Hermit.Plumber, fn _state ->
-      pipe_id
-      |> Hermit.Plumber.get_pipe_file
-      |> File.stream!([], 2048)
-      |> Enum.map(&(format_chunk(&1, format)))
-      |> Enum.into(conn)
-    end)
+    pipe_id
+    |> Hermit.Plumber.get_pipe_file
+    |> File.stream!([], 2048)
+    |> Enum.map(&(format_chunk(&1, format)))
+    |> Enum.into(conn)
   end
 
   defp format_chunk(bytes, format, event \\ "input") do

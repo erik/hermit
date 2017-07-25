@@ -1,4 +1,5 @@
 defmodule Hermit do
+  require Logger
   use Application
 
   def start(_type, _args) do
@@ -13,6 +14,8 @@ defmodule Hermit do
       worker(Hermit.Plumber, []),
       worker(Task, [Hermit.Sink, :listen, [sink_port]])
     ]
+
+    Logger.info "Starting hermit web: #{Hermit.Config.base_url}"
 
     opts = [strategy: :one_for_one, name: Hermit.Supervisor]
     Supervisor.start_link(children, opts)

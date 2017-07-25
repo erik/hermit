@@ -7,13 +7,11 @@ defmodule Hermit.Plumber do
     defstruct id: '', fp: nil, active: false, listeners: [], bytes_written: 0
   end
 
-  @log_dir Hermit.Config.log_dir
-  @max_file Hermit.Config.max_file
-
   def start_link do
-    Task.async(&Hermit.Plumber.reap_loop/0)
+    Task.async(&Hermit.Plumber.cleanup_listeners/0)
     Agent.start_link(fn -> %{} end, name: __MODULE__)
   end
+
 
   # Create a new pipe and return the id
   def new_pipe do
@@ -38,6 +36,9 @@ defmodule Hermit.Plumber do
       (get_pipe_file(pipe_id) |> File.exists?)
   end
 
+
+  # If specified pipe isn't already closed, add the PID as a
+  # listener. Otherwise, immediately respond with a closed message.
   def add_pipe_listener(pipe_id, pid) do
     Agent.update(__MODULE__, fn state ->
       Map.update(state, pipe_id, %Pipe{id: pipe_id}, fn pipe ->
@@ -52,13 +53,17 @@ defmodule Hermit.Plumber do
     end)
   end
 
-  # Send a message to all PIDs listening to this pipe
+
+  # Send a message to all PIDs listening to this pipe.
   defp broadcast_pipe_listeners(pipe, msg) do
     pipe
     |> Map.get(:listeners)
     |> Enum.each(&(send &1, msg))
   end
 
+
+  # Write content to pipe log file, then fan out to all listening PIDs.
+  #
   # FIXME: Maybe want to move the write outside of this function?
   # FIXME: Seems wasteful to only allow one thing to write at a time.
   def pipe_input(pipe_id, content) do
@@ -71,7 +76,7 @@ defmodule Hermit.Plumber do
         not pipe.active ->
           { :closed, state }
 
-        size >= @max_file ->
+        size >= Hermit.Config.max_file ->
           { :file_too_large, state}
 
         :else ->
@@ -83,6 +88,9 @@ defmodule Hermit.Plumber do
     end)
   end
 
+
+  # Mark a pipe as closed so that it can't be written to, and inform all
+  # active listeners.
   def close_pipe(pipe_id) do
     Agent.get_and_update(__MODULE__, fn state ->
       state_ = Map.update!(state, pipe_id, fn pipe ->
@@ -96,11 +104,15 @@ defmodule Hermit.Plumber do
   end
 
   def get_pipe_file(pipe_id) do
-    @log_dir |> Path.join(pipe_id)
+    Hermit.Config.log_dir
+    |> Path.join(pipe_id)
   end
 
-  # Clean up the dead procs every 60 seconds
-  def reap_loop do
+
+  # Clean up closed connections.
+  #
+  # This function does not terminate.
+  def cleanup_listeners do
     Process.sleep(60_000)
 
     Agent.update(__MODULE__, fn state ->
@@ -111,6 +123,6 @@ defmodule Hermit.Plumber do
       |> Enum.into(%{})
     end)
 
-    reap_loop()
+    cleanup_listeners()
   end
 end
