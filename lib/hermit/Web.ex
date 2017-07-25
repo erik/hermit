@@ -35,9 +35,9 @@ defmodule Hermit.Web do
     conn |> stream_response(pipe_id, :sse)
   end
 
-  defp stream_response(conn, pipe_id, format) do
+  defp stream_response(conn, pipe_id, resp_kind) do
     content_type =
-      case format do
+      case resp_kind do
         :sse -> "text/event-stream"
         :plain -> "text/plain"
       end
@@ -49,29 +49,25 @@ defmodule Hermit.Web do
       conn
       |> put_resp_header("content-type", content_type)
       |> send_chunked(200)
-      |> send_replay(pipe_id, format)
-      |> listen_loop(format)
+      |> send_replay(pipe_id, resp_kind)
+      |> listen_loop(resp_kind)
     else
       send_resp(conn, 404, "fo oh fo")
     end
   end
 
-  defp send_replay(conn, pipe_id, format) do
+  defp send_replay(conn, pipe_id, resp_kind) do
     pipe_id
     |> Hermit.Plumber.get_pipe_file
     |> File.stream!([], 2048)
-    |> Enum.map(&(format_chunk(&1, format)))
+    |> Enum.map(&(format_chunk(&1, :input, resp_kind)))
     |> Enum.into(conn)
   end
 
-  defp format_chunk(bytes, format, event \\ "input") do
-    case format do
-      :sse ->
-        encoded = Base.encode64(bytes)
-        "event: #{event}\ndata: #{encoded}\n\n"
-      :plain ->
-        bytes
-    end
+  defp format_chunk(bytes, _event, :plain), do: bytes
+  defp format_chunk(bytes, event, :sse) do
+    encoded = Base.encode64(bytes)
+    "event: #{event}\ndata: #{encoded}\n\n"
   end
 
   defp write_chunk(conn, msg) do
@@ -79,16 +75,16 @@ defmodule Hermit.Web do
     conn
   end
 
-  defp listen_loop(conn, format) do
+  defp listen_loop(conn, resp_kind) do
     receive do
       { :pipe_activity, msg } ->
         conn
-        |> write_chunk(msg |> format_chunk(format))
-        |> listen_loop(format)
+        |> write_chunk(format_chunk(msg, :input, resp_kind))
+        |> listen_loop(resp_kind)
 
       { :closed } ->
         conn
-        |> write_chunk("" |> format_chunk(format, "closed"))
+        |> write_chunk(format_chunk("", :closed, resp_kind))
     end
   end
 
