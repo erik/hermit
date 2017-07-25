@@ -53,8 +53,8 @@ $ MIX_ENV=prod mix run --no-halt
 
 ## Configuration
 
-There are several environment variables you can set to configure the server.
-They are described in [lib/hermit/Config.ex](https://github.com/erik/hermit/blob/master/lib/hermit/Config.ex).
+Hermit is configured through environment variables, which are described in
+[lib/hermit/Config.ex](https://github.com/erik/hermit/blob/master/lib/hermit/Config.ex).
 
 Set them appropriately and rerun `MIX_ENV=prod mix run --no-halt`.
 
