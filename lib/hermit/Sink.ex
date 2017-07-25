@@ -17,11 +17,11 @@ defmodule Hermit.Sink do
     base_url = Hermit.Config.base_url
     {:ok, client} = :gen_tcp.accept(socket)
 
-    {:ok, pid} = Task.Supervisor.start_child(Hermit.TaskSupervisor, fn ->
-      pipe_id = Hermit.Plumber.new_pipe()
-      :gen_tcp.send(client, "Your pipe is available at #{base_url}/v/#{pipe_id}\n")
-      Logger.info("pipe opened: #{pipe_id}")
+    pipe_id = Hermit.Plumber.new_pipe()
+    :gen_tcp.send(client, "Your pipe is available at #{base_url}/v/#{pipe_id}\n")
+    Logger.info("pipe opened: #{pipe_id}")
 
+    {:ok, pid} = Task.Supervisor.start_child(Hermit.TaskSupervisor, fn ->
       serve(client, pipe_id)
     end)
 
