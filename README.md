@@ -27,8 +27,12 @@ $ docker run -t -p 1337:1337 -p 8090:8090 hermit
 
 # To set config values, specify environment variables with `-e`:
 $ docker run -t -e HERMIT_HOST=example.com \
-                -e HERMIT_DIR=/foo/bar     \
+                -e HERMIT_SINK_PORT=1234   \
                 hermit
+
+# To mount the log directory outside of the docker (for inspection, log
+# rotation, backup, ...)
+$ docker run -t -v /path/to/local/dir:/hermit/logs hermit
 ```
 
 ## Native setup

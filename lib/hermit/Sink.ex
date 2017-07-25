@@ -41,7 +41,6 @@ defmodule Hermit.Sink do
             :gen_tcp.send(socket, "max pipe size reached")
         end
 
-
       {:error, :closed} ->
         Logger.info("pipe closed: #{pipe_id}")
         Hermit.Plumber.close_pipe(pipe_id)

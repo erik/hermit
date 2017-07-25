@@ -1,15 +1,15 @@
 FROM elixir:1.4
 
-EXPOSE 1337
-EXPOSE 8090
+EXPOSE 1337 8090
+
+ENV HERMIT_DIR=/hermit/logs/
+VOLUME /hermit/logs/
 
 WORKDIR /hermit
 
 ADD ./lib /hermit/lib
 ADD ./web /hermit/web
 ADD ./mix.exs ./mix.lock /hermit/
-
-RUN mkdir -p /tmp/hermit/
 
 RUN mix local.hex --force
 RUN mix local.rebar --force
