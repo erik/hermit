@@ -18,11 +18,12 @@ defmodule Hermit.Web do
     |> send_resp(200, index_template(@host, @sink_port, @base_url))
   end
 
-  # Plain text
+  # plain text
   get "/p/:pipe_id" do
     conn |> stream_response(pipe_id, :plain)
   end
 
+  # xterm.js template
   get "/v/:pipe_id" do
     sse_url = "#{@base_url}/stream/#{pipe_id}"
 
@@ -31,6 +32,7 @@ defmodule Hermit.Web do
     |> send_resp(200, pipe_template(sse_url))
   end
 
+  # respond with a server sent event stream
   get "/stream/:pipe_id" do
     conn |> stream_response(pipe_id, :sse)
   end
@@ -50,9 +52,9 @@ defmodule Hermit.Web do
       |> put_resp_header("content-type", content_type)
       |> send_chunked(200)
       |> send_replay(pipe_id, resp_kind)
-      |> listen_loop(resp_kind)
+      |> pipe_listener(resp_kind)
     else
-      send_resp(conn, 404, "fo oh fo")
+      send_resp(conn, 404, "invalid pipe id")
     end
   end
 
@@ -75,12 +77,13 @@ defmodule Hermit.Web do
     conn
   end
 
-  defp listen_loop(conn, resp_kind) do
+  # Wait for messages to be broadcast to this process.
+  defp pipe_listener(conn, resp_kind) do
     receive do
       { :pipe_activity, msg } ->
         conn
         |> write_chunk(format_chunk(msg, :input, resp_kind))
-        |> listen_loop(resp_kind)
+        |> pipe_listener(resp_kind)
 
       { :closed } ->
         conn
