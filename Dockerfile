@@ -7,13 +7,15 @@ VOLUME /hermit/logs/
 
 WORKDIR /hermit
 
-ADD ./lib /hermit/lib
-ADD ./web /hermit/web
-ADD ./mix.exs ./mix.lock /hermit/
-
 RUN mix local.hex --force
 RUN mix local.rebar --force
+
+ADD ./mix.exs ./mix.lock /hermit/
 RUN mix deps.get
+
+ADD ./lib /hermit/lib
+ADD ./web /hermit/web
+
 RUN MIX_ENV=prod mix compile
 
 CMD MIX_ENV=prod mix run --no-halt
