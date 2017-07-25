@@ -8,11 +8,11 @@
 <body>
     <p>pipe your command line to the web.</p>
     <pre>
-$ some --long running --job | nc <%= host %> <%= port %>
-$ (sleep 5; htop) | tee &gt;(nc <%= host %> <%= port %>)
+$ some --long running --job | nc <%= Hermit.Config.host %> <%= Hermit.Config.sink_port %>
+$ (sleep 5; htop) | tee &gt;(nc <%= Hermit.Config.host %> <%= Hermit.Config.sink_port %>)
 
-<%= Path.join(base_url, "/v/pipe_id") %>      terminal js view
-<%= Path.join(base_url, "/p/pipe_id") %>      plain text view
+<%= Hermit.Config.base_url <> "/v/pipe_id" %>      terminal js view
+<%= Hermit.Config.base_url <> "/p/pipe_id" %>      plain text view
     </pre>
 
     <p><a href="https://github.com/erik/hermit">fork me</a></p>
