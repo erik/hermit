@@ -9,6 +9,8 @@ ADD ./lib /hermit/lib
 ADD ./web /hermit/web
 ADD ./mix.exs ./mix.lock /hermit/
 
+RUN mkdir -p /tmp/hermit/
+
 RUN mix local.hex --force
 RUN mix local.rebar --force
 RUN mix deps.get

@@ -18,7 +18,20 @@ Your pipe is available at http://hermit.server.tld/v/XASdwked
 
 ```
 
-## server setup
+## Docker setup
+
+``` bash
+
+$ docker build -t hermit .
+$ docker run -t -p 1337:1337 -p 8090:8090 hermit
+
+# To set config values, specify environment variables with `-e`:
+$ docker run -t -e HERMIT_HOST=example.com \
+                -e HERMIT_DIR=/foo/bar     \
+                hermit
+```
+
+## Native setup
 
 First, install [elixir](https://elixir-lang.org/install.html) and erlang.
 
@@ -34,12 +47,14 @@ $ MIX_ENV=prod mix compile
 $ MIX_ENV=prod mix run --no-halt
 ```
 
+## Configuration
+
 There are several environment variables you can set to configure the server.
 They are described in [lib/hermit/Config.ex](https://github.com/erik/hermit/blob/master/lib/hermit/Config.ex).
 
 Set them appropriately and rerun `MIX_ENV=prod mix run --no-halt`.
 
-## why
+## Why
 
 hermit is a from scratch implementation of [seashells.io](http://seashells.io),
 designed to be self hosted, because the idea of seashells.io is
