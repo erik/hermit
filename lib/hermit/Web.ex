@@ -85,12 +85,12 @@ defmodule Hermit.Web do
   # Wait for messages to be broadcast to this process.
   defp pipe_listener(conn, resp_kind) do
     receive do
-      { :pipe_activity, msg } ->
+      {:pipe_activity, msg} ->
         conn
         |> write_chunk(format_chunk(msg, :input, resp_kind))
         |> pipe_listener(resp_kind)
 
-      { :closed } ->
+      {:closed} ->
         conn
         |> write_chunk(format_chunk("", :closed, resp_kind))
     end

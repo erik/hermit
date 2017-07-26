@@ -55,7 +55,7 @@ defmodule Hermit.Config do
   # (999TB), Use T, G, M, K suffixes to avoid doing math.
   def max_file do
     # lol, this is bad.
-    { byte_size, _} = get_env("HERMIT_MAX_SIZE", "999 T")
+    {byte_size, _} = get_env("HERMIT_MAX_SIZE", "999 T")
     |> String.downcase
     |> String.replace("t", " * 1024 g")
     |> String.replace("g", " * 1024 m")
