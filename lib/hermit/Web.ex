@@ -16,21 +16,30 @@ defmodule Hermit.Web do
 
   # plain text
   get "/p/:pipe_id" do
-    conn |> stream_response(pipe_id, :plain)
+    conn
+    |> stream_response(pipe_id, :plain)
   end
 
   # xterm.js template
   get "/v/:pipe_id" do
     sse_url = "#{Hermit.Config.base_url}/stream/#{pipe_id}"
 
-    conn
-    |> put_resp_header("content-type", "text/html")
-    |> send_resp(200, pipe_template(sse_url))
+    if Hermit.Plumber.valid_pipe?(pipe_id) do
+      conn
+      |> put_resp_header("content-type", "text/html")
+      |> send_resp(200, pipe_template(sse_url))
+    else
+      send_404(conn)
+    end
   end
 
   # respond with a server sent event stream
   get "/stream/:pipe_id" do
     conn |> stream_response(pipe_id, :sse)
+  end
+
+  match _ do
+    send_404(conn)
   end
 
   defp stream_response(conn, pipe_id, resp_kind) do
@@ -50,7 +59,7 @@ defmodule Hermit.Web do
       |> send_replay(pipe_id, resp_kind)
       |> pipe_listener(resp_kind)
     else
-      send_resp(conn, 404, "invalid pipe id")
+      send_404(conn)
     end
   end
 
@@ -87,7 +96,8 @@ defmodule Hermit.Web do
     end
   end
 
-  match _ do
-    send_resp(conn, 404, "fo oh fo")
+  defp send_404(conn) do
+    conn
+    |> send_resp(404, "404")
   end
 end
