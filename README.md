@@ -9,13 +9,14 @@ Piping command line output to the web.
 $ echo hello, world | nc hermit.server.tld 1337
 Your pipe is available at http://hermit.server.tld/v/RNWG8Eua
 
-
 # For ncurses apps, we can use tee with process substitution.
 # Add a sleep command to get a chance to see the view URL.
 #
 $ (sleep 5; emacs -nw README.md) | tee >(nc hermit.server.tld 1337)
 Your pipe is available at http://hermit.server.tld/v/XASdwked
 
+# Can also use the seashells.io client (github.com/anishathalye/seashells)
+$ htop | seashells -i hermit.server.tld -p 1337 -d 5
 ```
 
 ## Docker setup
