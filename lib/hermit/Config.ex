@@ -66,6 +66,22 @@ defmodule Hermit.Config do
     byte_size
   end
 
+  # HERMIT_SHOW_LISTING
+  #
+  # When set to "true", expose the /pipes web endpoint to display a
+  # list of active and inactive pipes this server has seen. If this
+  # hermit isn't exposed to the internet, it's probably what you'd
+  # want. Set to "false" or leave unset to disable.
+  def show_listing do
+    case get_env("HERMIT_SHOW_LISTING", "false") do
+      "true" -> true
+      "false" -> false
+      _ -> raise ArgumentError, message: "invalid HERMIT_SHOW_LISTING \
+value, expected true/false"
+    end
+  end
+
+
   defp get_env(key, default) do
     System.get_env(key) || default
   end

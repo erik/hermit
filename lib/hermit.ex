@@ -16,6 +16,10 @@ defmodule Hermit do
     ]
 
     Logger.info "Starting hermit web: #{Hermit.Config.base_url}"
+    if Hermit.Config.show_listing() do
+      Logger.info "exposing /pipes"
+    end
+
 
     opts = [strategy: :one_for_one, name: Hermit.Supervisor]
     Supervisor.start_link(children, opts)

@@ -1,0 +1,26 @@
+<head>
+    <style>
+     body { max-width: 900px; margin: 2em auto; line-height: 1.5; font-size: 24px; }
+     * { font-family: Helvetica Neue, sans-serif; }
+     .pipe { font-family: monospace; }
+     .active-true:before { content: 'ACTIVE'; color: green; font-size: small; }
+     .active-false:before { content: 'ACTIVE'; color: white; font-size: small; }
+    </style>
+</head>
+
+<body>
+    <%= for pipe <- pipes do %>
+    <p>
+        <span class="pipe active-<%= pipe.active %>">
+            <%= pipe.id %>
+        </span>
+
+        <%= :io_lib.format("~.2f", [pipe.bytes_written / 1024]) %> kB
+
+        <a href="<%= Hermit.Config.base_url <> "/v/" <> pipe.id %>">terminal view</a>
+        / <a href="<%= Hermit.Config.base_url <> "/p/" <> pipe.id %>">text view</a>
+
+        <%= length pipe.listeners %> listening
+    </p>
+    <% end %>
+</body>

@@ -7,6 +7,7 @@ defmodule Hermit.Web do
 
   EEx.function_from_file(:defp, :index_template, "./web/index.html", [])
   EEx.function_from_file(:defp, :pipe_template, "./web/pipe_view.html", [:sse_url])
+  EEx.function_from_file(:defp, :list_template, "./web/pipe_list.html", [:pipes])
 
   get "/" do
     conn
@@ -36,6 +37,19 @@ defmodule Hermit.Web do
   # respond with a server sent event stream
   get "/stream/:pipe_id" do
     conn |> stream_response(pipe_id, :sse)
+  end
+
+  get "/pipes" do
+    if Hermit.Config.show_listing do
+      pipes = Hermit.Plumber.get_all
+      |> Enum.sort_by(&(&1.id))
+
+      conn
+      |> put_resp_header("content-type", "text/html")
+      |> send_resp(200, list_template(pipes))
+    else
+      send_404(conn)
+    end
   end
 
   match _ do

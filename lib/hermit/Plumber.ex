@@ -31,6 +31,10 @@ defmodule Hermit.Plumber do
     pipe_id
   end
 
+  def get_all do
+    Agent.get(__MODULE__, &Map.values/1)
+  end
+
   # A pipe_id is valid if it is tracked in the agent state or there is a file
   # with the same name.
   def valid_pipe?(pipe_id) do
