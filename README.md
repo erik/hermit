@@ -2,37 +2,45 @@
 
 Piping command line output to the web.
 
-``` bash
+No client needed! Pipe directly to netcat.
 
-# No client needed! Pipe directly to netcat.
-#
+``` bash
 $ echo hello, world | nc hermit.server.tld 1337
 Your pipe is available at http://hermit.server.tld/v/RNWG8Eua
+```
 
-# For ncurses apps, we can use tee with process substitution.
-# Add a sleep command to get a chance to see the view URL.
-#
+For ncurses apps, we can use tee with process substitution.
+Add a sleep command to get a chance to see the view URL.
+
+``` bash
 $ (sleep 5; emacs -nw README.md) | tee >(nc hermit.server.tld 1337)
 Your pipe is available at http://hermit.server.tld/v/XASdwked
+```
 
-# Can also use the seashells.io client (github.com/anishathalye/seashells)
+Can also use the [seashells.io client](http://github.com/anishathalye/seashells).
+
+``` bash
 $ htop | seashells -i hermit.server.tld -p 1337 -d 5
 ```
 
 ## Docker setup
 
 ``` bash
-
 $ docker build -t hermit .
 $ docker run -t -p 1337:1337 -p 8090:8090 hermit
+```
 
-# To set config values, specify environment variables with `-e`:
-$ docker run -t -e HERMIT_HOST=example.com \
-                -e HERMIT_SINK_PORT=1234   \
+
+To set config values, specify environment variables with `-e`:
+``` bash
+$ docker run -t -e HERMIT_HOST=example.com    \
+                -e HERMIT_SHOW_LISTING=true   \
                 hermit
+```
 
-# To mount the log directory outside of the docker (for inspection, log
-# rotation, backup, ...)
+To mount the log directory outside of the docker (for inspection, log
+rotation, backup, ...)
+``` bash
 $ docker run -t -v /path/to/local/dir:/hermit/logs hermit
 ```
 
