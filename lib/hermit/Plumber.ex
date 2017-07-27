@@ -97,7 +97,7 @@ defmodule Hermit.Plumber do
     Agent.update(__MODULE__, fn state ->
       Map.update!(state, pipe_id, fn pipe ->
         :ok = File.close(pipe.fp)
-        broadcast_pipe_listeners({:closed})
+        broadcast_pipe_listeners(pipe, {:closed})
         %{pipe | active: false}
       end)
     end)
