@@ -9,7 +9,7 @@ defmodule Hermit.Plumber do
 
   def start_link do
     Task.async(&Hermit.Plumber.cleanup_listeners/0)
-    Agent.start_link(fn -> %{} end, name: __MODULE__)
+    Agent.start_link(fn -> find_existing_pipes() end, name: __MODULE__)
   end
 
 
@@ -29,6 +29,22 @@ defmodule Hermit.Plumber do
     end)
 
     pipe_id
+  end
+
+  # Get files that were created by previous runs of hermit.
+  defp find_existing_pipes() do
+    {:ok, files} = File.ls(Hermit.Config.log_dir)
+
+    files
+    |> Enum.map(fn pipe_id ->
+      {:ok, stat} =
+        pipe_id
+        |> get_pipe_file
+        |> File.stat
+
+      {pipe_id, %Pipe{id: pipe_id, active: false, bytes_written: stat.size}}
+    end)
+    |> Enum.into(%{})
   end
 
   def get_all do
