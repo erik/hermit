@@ -8,8 +8,15 @@ defmodule Hermit.Plumber do
   end
 
   def start_link do
-    Task.async(&Hermit.Plumber.cleanup_listeners/0)
-    Agent.start_link(fn -> find_existing_pipes() end, name: __MODULE__)
+    Task.start_link(&Hermit.Plumber.cleanup_listeners/0)
+
+    existing_pipes = find_existing_pipes()
+
+    existing_pipes
+    |> Map.keys
+    |> Enum.each(&schedule_expiration/1)
+
+    Agent.start_link(fn -> existing_pipes end, name: __MODULE__)
   end
 
 
@@ -117,6 +124,7 @@ defmodule Hermit.Plumber do
     Agent.update(__MODULE__, fn state ->
       Map.update!(state, pipe_id, fn pipe ->
         :ok = File.close(pipe.fp)
+        schedule_expiration(pipe_id)
         broadcast_pipe_listeners(pipe, {:closed})
         %{pipe | active: false}
       end)
@@ -144,5 +152,18 @@ defmodule Hermit.Plumber do
     end)
 
     cleanup_listeners()
+  end
+
+  defp schedule_expiration(pipe_id) do
+    if duration = Hermit.Config.pipe_expiration do
+      Task.start(fn ->
+        Process.sleep(duration)
+        Agent.update(__MODULE__, &(Map.delete(&1, pipe_id)))
+
+        :ok = pipe_id
+        |> get_pipe_file()
+        |> File.rm()
+      end)
+    end
   end
 end

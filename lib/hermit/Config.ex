@@ -66,6 +66,28 @@ defmodule Hermit.Config do
     byte_size
   end
 
+  # HERMIT_PIPE_EXPIRATION
+  #
+  # If set, inactive pipe log files will be deleted after specified
+  # duration. If left unset, log files will never expire and must be
+  # rotated by some other process.
+  #
+  # Duration is in seconds, using "d" (day), "h" (hour), "m" (minute)
+  # as suffixes for convenience (e.g. "3600" == "60m" == "1h")
+  def pipe_expiration do
+    if duration = System.get_env("HERMIT_PIPE_EXPIRATION") do
+      {duration, _} =
+        duration
+        |> String.downcase
+        |> String.replace("d", "* 24 h")
+        |> String.replace("h", "* 60 m")
+        |> String.replace("m", "* 60")
+        |> Code.eval_string
+
+      duration * 1000
+    end
+  end
+
   # HERMIT_SHOW_LISTING
   #
   # When set to "true", expose the /pipes web endpoint to display a
@@ -80,7 +102,6 @@ defmodule Hermit.Config do
 value, expected true/false"
     end
   end
-
 
   defp get_env(key, default) do
     System.get_env(key) || default
