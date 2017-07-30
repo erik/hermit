@@ -81,7 +81,7 @@ defmodule Hermit.Web do
     pipe_id
     |> Hermit.Plumber.get_pipe_file
     |> File.stream!([], 2048)
-    |> Enum.map(&(format_chunk(&1, :input, resp_kind)))
+    |> Stream.map(&(format_chunk(&1, :input, resp_kind)))
     |> Enum.into(conn)
   end
 
