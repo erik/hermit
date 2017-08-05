@@ -17,8 +17,7 @@ defmodule Hermit.Web do
 
   # plain text
   get "/p/:pipe_id" do
-    conn
-    |> stream_response(pipe_id, :plain)
+    conn |> stream_response(pipe_id, :plain)
   end
 
   # xterm.js template
