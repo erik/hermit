@@ -23,4 +23,8 @@
         <%= length pipe.listeners %> listening
     </p>
     <% end %>
+
+    <%= if length(pipes) == 0 do %>
+        <h1>nothing yet.</h1>
+    <% end %>
 </body>
