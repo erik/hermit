@@ -6,6 +6,7 @@ defmodule Hermit.Web do
   plug :dispatch
 
   EEx.function_from_file(:defp, :index_template, "./web/index.html", [])
+  EEx.function_from_file(:defp, :utf8_template, "./web/utf8.js", [])
   EEx.function_from_file(:defp, :pipe_template, "./web/pipe_view.html", [:sse_url])
   EEx.function_from_file(:defp, :list_template, "./web/pipe_list.html", [:pipes])
 
@@ -13,6 +14,12 @@ defmodule Hermit.Web do
     conn
     |> put_resp_header("content-type", "text/html")
     |> send_resp(200, index_template())
+  end
+  
+  get "/utf8.js" do
+    conn
+    |> put_resp_header("content-type", "text/javascript")
+    |> send_resp(200, utf8_template())
   end
 
   # plain text
